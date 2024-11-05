@@ -62,10 +62,12 @@ app.use(async (req, res, next) => {
 const apiLogsRoutes = require('./routes/apiLogsRoutes');
 const machineStatusRoutes = require('./routes/machineStatusRoutes');
 const machineStatusLogsRoutes = require('./routes/machineStatusLogsRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 app.use('/api/machine_status', machineStatusRoutes);
 app.use('/api/machine_status_logs', machineStatusLogsRoutes);
 app.use('/api/api-logs', apiLogsRoutes);
+app.use('/api/user-managements', authRoutes);
 app.use(express.json());
 
 // Example route

@@ -1,0 +1,118 @@
+image: docker:19
+
+services:
+  - docker:dind
+
+stages:
+  - build_dev
+  - deploy_dev
+  - build_prod
+  - deploy_prod
+
+variables:
+  DOCKER_IMAGE_NAME: my-express-oee_apps
+  DATABASE_HOST: $CI_DATABASE_HOST
+  DATABASE_USER: $CI_DATABASE_USER
+  DATABASE_PASSWORD: $CI_DATABASE_PASSWORD
+  DATABASE_NAME: $CI_DATABASE_NAME
+  PORT: $CI_PORT
+  IMAGE_TAG: my-express-oee_apps
+  CONTAINER_NAME: my-express-oee_apps
+
+before_script:
+  - echo "Before script steps, if any"
+
+build_dev:
+  stage: build_dev
+  when: manual
+  tags:
+    - express-oee-dev
+  script:
+    - echo "DATABASE_HOST=$CI_DATABASE_HOST" > .env
+    - echo "DATABASE_USER=$CI_DATABASE_USER" >> .env
+    - echo "DATABASE_PASSWORD=$CI_DATABASE_PASSWORD" >> .env
+    - echo "DATABASE_NAME=$CI_DATABASE_NAME" >> .env
+    - echo "PORT=$CI_PORT" >> .env
+    # - echo "SERVICE_BASE_URL=$CI_SERVICE_BASE_URL" >> .env
+    - echo "SERVICE_AUTH_LIST=$CI_SERVICE_AUTH_LIST" >> .env
+    - echo "ACCESS_TOKEN_SECRET=$CI_ACCESS_TOKEN_SECRET" >> .env
+
+    - echo "MONGODB_URI=$CI_MONGODB_URI" >> .env
+    # - echo "MQTT_URL=$CI_MQTT_URL" >> .env
+    # - echo "MQTT_USER=$CI_MQTT_USER" >> .env
+    # - echo "MQTT_PASSWORD=$CI_MQTT_PASSWORD" >> .env
+    - echo "REDIS_URL=$CI_REDIS_URL" >> .env
+    - cat .env
+
+  artifacts:
+    paths:
+      - .env
+
+deploy_dev:
+  stage: deploy_dev
+  when: manual
+  tags:
+    - express-oee-dev
+  needs: [build_dev]
+  script:
+    - docker image ls
+    - |
+      CONTAINER_ID=$(docker ps -aqf "name=$CONTAINER_NAME")
+      if [ -n "$CONTAINER_ID" ]; then
+        echo "Container is already running. Stopping and removing it..."
+        docker stop $CONTAINER_ID
+        docker rm $CONTAINER_ID  # Remove the old container
+      fi
+    - docker build -t $DOCKER_IMAGE_NAME:$IMAGE_TAG .
+    - docker run --restart always -d -p $CI_PORT:$CI_PORT --name $CONTAINER_NAME --env-file .env $DOCKER_IMAGE_NAME:$IMAGE_TAG pm2-runtime src/server-settings.js
+
+build_prod:
+  stage: build_prod
+  tags:
+    - express-oee-prod
+  when: manual
+  script:
+    - echo "DATABASE_HOST=$CI_DATABASE_HOST" > .env
+    - echo "DATABASE_USER=$CI_DATABASE_USER" >> .env
+    - echo "DATABASE_PASSWORD=$CI_DATABASE_PASSWORD" >> .env
+    - echo "DATABASE_NAME=$CI_DATABASE_NAME" >> .env
+    - echo "PORT=$CI_PORT" >> .env
+    # - echo "SERVICE_BASE_URL=$CI_SERVICE_BASE_URL" >> .env
+    - echo "SERVICE_AUTH_LIST=$CI_SERVICE_AUTH_LIST" >> .env
+    - echo "ACCESS_TOKEN_SECRET=$CI_ACCESS_TOKEN_SECRET" >> .env
+
+    - echo "MONGODB_URI=$CI_MONGODB_URI" >> .env
+    # - echo "MQTT_URL=$CI_MQTT_URL" >> .env
+    # - echo "MQTT_USER=$CI_MQTT_USER" >> .env
+    # - echo "MQTT_PASSWORD=$CI_MQTT_PASSWORD" >> .env
+    - echo "REDIS_URL=$CI_REDIS_URL" >> .env
+    - cat .env
+    # - docker build --no-cache -t $DOCKER_IMAGE_NAME:$IMAGE_TAG .
+  artifacts:
+    paths:
+      - .env
+
+deploy_prod:
+  stage: deploy_prod
+  when: manual
+  tags:
+    - express-oee-prod
+  needs: [build_prod]
+  script:
+    - docker image ls
+    - |
+      CONTAINER_ID=$(docker ps -aqf "name=$CONTAINER_NAME")
+      if [ -n "$CONTAINER_ID" ]; then
+        echo "Container is already running. Stopping and removing it..."
+        docker stop $CONTAINER_ID
+        docker rm $CONTAINER_ID  # Remove the old container
+      fi
+    - docker build -t $DOCKER_IMAGE_NAME:$IMAGE_TAG .
+    - docker run --restart always -d -p $CI_PORT:$CI_PORT --name $CONTAINER_NAME --env-file .env $DOCKER_IMAGE_NAME:$IMAGE_TAG pm2-runtime src/server-settings.js
+    # - docker run --restart always -d -p $CI_PORT:$CI_PORT --name $CONTAINER_NAME --env-file .env $DOCKER_IMAGE_NAME:$IMAGE_TAG pm2-runtime src/server-settings.js
+    # - docker run --restart always -d -p $ELASTIC_IP_PROD:$CI_PORT:$CI_PORT --name $CONTAINER_NAME --env-file .env --network host $DOCKER_IMAGE_NAME:$IMAGE_TAG pm2-runtime src/server-settings.js
+    # - sleep 60  # Wait for a few seconds
+    # - docker logs $CONTAINER_NAME
+    # - docker exec $CONTAINER_NAME cat /app/.env
+    # - docker exec $CONTAINER_NAME ip addr show
+    # - docker exec $CONTAINER_NAME curl http://checkip.amazonaws.com

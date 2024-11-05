@@ -108,7 +108,9 @@ deploy_prod:
         docker rm $CONTAINER_ID  # Remove the old container
       fi
     - docker build -t $DOCKER_IMAGE_NAME:$IMAGE_TAG .
-    - docker run --restart always -d -p $CI_PORT:$CI_PORT --name $CONTAINER_NAME --env-file .env $DOCKER_IMAGE_NAME:$IMAGE_TAG pm2-runtime src/server-settings.js
+    # - docker run --restart always -d -p $CI_PORT:$CI_PORT --name $CONTAINER_NAME --env-file .env $DOCKER_IMAGE_NAME:$IMAGE_TAG pm2-runtime src/server-settings.js
+    - docker run --restart always -d --network="host" --name $CONTAINER_NAME --env-file .env $DOCKER_IMAGE_NAME:$IMAGE_TAG pm2-runtime src/server-settings.js
+
     # - docker run --restart always -d -p $CI_PORT:$CI_PORT --name $CONTAINER_NAME --env-file .env $DOCKER_IMAGE_NAME:$IMAGE_TAG pm2-runtime src/server-settings.js
     # - docker run --restart always -d -p $ELASTIC_IP_PROD:$CI_PORT:$CI_PORT --name $CONTAINER_NAME --env-file .env --network host $DOCKER_IMAGE_NAME:$IMAGE_TAG pm2-runtime src/server-settings.js
     # - sleep 60  # Wait for a few seconds

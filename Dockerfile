@@ -20,7 +20,7 @@ COPY . .
 RUN npm install pm2 -g
 
 # Expose the port your app will run on
-EXPOSE 3001
+EXPOSE 3011
 
 # Start the application using PM2
 CMD ["pm2-runtime", "src/server-settings.js"]

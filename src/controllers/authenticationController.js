@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const CryptoJS = require('crypto-js');
 const bcrypt = require('bcrypt');
 const isValidInput = require('./validateController');
-const pool = require('../db-settings');
+const { pool } = require('../db-settings');
 const currentTimeFormatted = require('./validateController');
 const { getTimeFormatted } = require('./commonFunctionController');
 
@@ -27,10 +27,9 @@ const login = async (req, res) => {
 
     const data = req.body.data;
     const decryptedData = decryptDataWithSecret(data, process.env.ACCESS_TOKEN_SECRET);
-
-    const { param1, param2, login_type } = decryptedData;
-    const username = param1;
-    const password = param2;
+    const login_type = 'email';
+    const { email, password } = decryptedData;
+    const username = email;
 
     try {
         // Check if the user exists in the database
@@ -224,8 +223,8 @@ const generateTokens = (user) => {
     const isSingleSignOn = user.login_type === 'email' ? false : true;
     const accessToken = jwt.sign({ userId: user.id, username: user.username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
     const refreshToken = jwt.sign({ userId: user.id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' });
-  
-    return { accessToken, refreshToken, isSingleSignOn };
+    const username = user.username;
+    return { accessToken, refreshToken, isSingleSignOn, username };
 };
 
 module.exports = {

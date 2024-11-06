@@ -33,7 +33,7 @@ build_dev:
     - echo "DATABASE_PASSWORD=$CI_DATABASE_PASSWORD" >> .env
     - echo "DATABASE_NAME=$CI_DATABASE_NAME" >> .env
     - echo "PORT=$CI_PORT" >> .env
-    # - echo "SERVICE_BASE_URL=$CI_SERVICE_BASE_URL" >> .env
+    - echo "SERVICE_BASE_URL=$CI_SERVICE_BASE_URL" >> .env
     - echo "SERVICE_AUTH_LIST=$CI_SERVICE_AUTH_LIST" >> .env
     - echo "ACCESS_TOKEN_SECRET=$CI_ACCESS_TOKEN_SECRET" >> .env
 
@@ -77,7 +77,7 @@ build_prod:
     - echo "DATABASE_PASSWORD=$CI_DATABASE_PASSWORD" >> .env
     - echo "DATABASE_NAME=$CI_DATABASE_NAME" >> .env
     - echo "PORT=$CI_PORT" >> .env
-    # - echo "SERVICE_BASE_URL=$CI_SERVICE_BASE_URL" >> .env
+    - echo "SERVICE_BASE_URL=$CI_SERVICE_BASE_URL" >> .env
     - echo "SERVICE_AUTH_LIST=$CI_SERVICE_AUTH_LIST" >> .env
     - echo "ACCESS_TOKEN_SECRET=$CI_ACCESS_TOKEN_SECRET" >> .env
 

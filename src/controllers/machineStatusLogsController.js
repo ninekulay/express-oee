@@ -40,7 +40,13 @@ const getStatusLogsFromMachine = async (req, res) => {
       if (cachedData) {
         return res.status(200).json(JSON.parse(cachedData));
       }
-  
+
+      // // handle BKK TimeZone
+      // const startDateLocal = new Date(startDate);
+      // startDateLocal.setHours(startDateLocal.getHours() - 7); // Adjust to UTC
+      // const endDateLocal = new Date(endDate);
+      // endDateLocal.setHours(endDateLocal.getHours() - 7); // Adjust to UTC
+
       // Query MongoDB if cache miss
       const rows = await MachineStatusLogsModel.find({
         machine_name: machineName,
@@ -56,11 +62,19 @@ const getStatusLogsFromMachine = async (req, res) => {
   
       // Format documents with a timestamp for consistent display
       const formattedDocuments = rows.map(doc => {
+        // Deconstruct the created_at value and other properties
         const { created_at, ...rest } = doc.toObject();
-        const formattedDate = new Date(created_at).toISOString().slice(0, 19).replace('T', ' ');
+        
+        // Add 7 hours to created_at
+        const adjustedCreatedAt = new Date(created_at.getTime() + 7 * 60 * 60 * 1000);
+        
+        // Format the adjusted created_at date as 'YYYY-MM-DD HH:mm:ss'
+        const formattedDate = adjustedCreatedAt.toISOString().slice(0, 19).replace('T', ' ');
+        
+        // Return the new object with the formatted created_at
         return { ...rest, created_at: formattedDate };
       });
-  
+
       // Cache the formatted data for subsequent requests
       await redisClient.setEx(cacheKey, 3600, JSON.stringify(formattedDocuments)); // Cache for 1 hour
   

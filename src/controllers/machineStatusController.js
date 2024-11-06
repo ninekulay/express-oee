@@ -25,8 +25,59 @@ const getDataFromMachine = async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error', message: error.message });
     }
 };
-  
+
+const changeFriendlyMachineName = async (req, res) => {
+  const { friendly_machine_name, id } = req.body;
+
+  for (const key in req.body) {
+    if (!isValidInput(req.body[key])) {
+      return res.status(400).json({ message: 'Invalid Parameter' });
+    }
+  }
+
+  try {
+    const sql = 'UPDATE machine_statuses SET friendly_machine_name = ? WHERE id = ?';
+    const [rows] = await pool.query(sql, [friendly_machine_name, id]);
+    res.status(200).json({ message: 'Machine name updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
+  }
+};
+
+const getAllMachineByArrayId = async (arrayId) => {
+  return new Promise(async (resolve) => {
+    if (!Array.isArray(arrayId) || arrayId.length === 0) {
+      resolve(null);
+    }
+    const sql = `SELECT * FROM machine_statuses WHERE id IN (?)`;
+    const [results] = await pool.query(sql, [arrayId]);
+    if (results.length === 0) {
+      resolve(null);
+    }
+    resolve(results);
+  });
+}
+
+const getAllMachineByLine = async (req, res) => {
+  try {
+    const lineName = req.params.line_name;
+    const location = req.params.location;
+    const sql = `SELECT * FROM machine_statuses WHERE line_name = ? AND location = ?`;
+    const [rows] = await pool.query(sql, [lineName, location]);
+    if (rows.length === 0) {
+      res.status(404).json({ error: 'Not Found', message: 'Data not found' });
+    }
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
+  }
+}
 
 module.exports = {
-    getDataFromMachine
+    getDataFromMachine,
+    getAllMachineByArrayId,
+    getAllMachineByLine,
+    changeFriendlyMachineName
 }
